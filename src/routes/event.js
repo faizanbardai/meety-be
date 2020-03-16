@@ -5,7 +5,7 @@ router.get("/", (req, res) => {
   res.send("Hi, I'm event route");
 });
 
-router.get("/id", (req, res) => {
+router.get("/:id", (req, res) => {
   res.send("Hi, I'm event route");
 });
 
