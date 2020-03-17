@@ -1,24 +1,32 @@
 const express = require("express");
-const router = express.Router();
+const userRouter = express.Router();
 
-router.get("/:id", (req, res) => {
+userRouter.get("/:id", (req, res) => {
+  try {
+  } catch (error) {
+    console.log(error);
+    res.send(error);
+  }
+});
+
+userRouter.post("/login", (req, res) => {
+  try {
+  } catch (error) {
+    console.log(error);
+    res.send.status(500);
+  }
+});
+
+userRouter.post("/createAccount", (req, res) => {
   res.send("Hi, I'm user route");
 });
 
-router.post("/login", (req, res) => {
+userRouter.put("/", (req, res) => {
   res.send("Hi, I'm user route");
 });
 
-router.post("/createAccount", (req, res) => {
+userRouter.delete("/", (req, res) => {
   res.send("Hi, I'm user route");
 });
 
-router.put("/", (req, res) => {
-  res.send("Hi, I'm user route");
-});
-
-router.delete("/", (req, res) => {
-  res.send("Hi, I'm user route");
-});
-
-module.exports = router;
+module.exports = userRouter;
