@@ -17,16 +17,12 @@ const userSchema = new Schema(
     },
     aboutMe: {
       type: String,
-      required: true,
       minlength: 10,
       maxlength: 300
     },
-    following: {
-      type: []
-    },
-    followers: {
-      type: []
-    }
+    following: { type: Schema.Types.ObjectId },
+    followers: { type: Schema.Types.ObjectId },
+    events: [{ type: Schema.Types.ObjectId, ref: "Event" }]
   },
   { timestamps: true }
 );
