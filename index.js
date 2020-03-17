@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const listEndpoints = require("express-list-endpoints");
 
 const mongooseConnection = require("./src/db/mongoose");
 const bodyParser = require("body-parser");
@@ -14,6 +15,7 @@ const port = process.env.PORT;
 mongooseConnection();
 app.use(bodyParser.json());
 app.use(cors());
+console.log(listEndpoints(app));
 
 app.use("/user", userRoute);
 app.use("/event", eventRoute);
