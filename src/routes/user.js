@@ -13,7 +13,7 @@ router.get("/:userId", passport.authenticate("jwt"), async (req, res)=>{
   res.send(await User.findById(req.params.id))
 })
 
-router.post("/register", async(req, res)=>{
+router.post("/signup", async(req, res)=>{
     try{
         const user = await User.register(req.body, req.body.password);
         const token = getToken({_id: user._id})
@@ -57,7 +57,7 @@ router.get("/userinfo", passport.authenticate("jwt"), async (req, res)=>{
     res.send(req.user);
 })
 
-router.post("/resetpassword", passport.authenticate("local"), async(req, res)=>{
+router.post("/changepassword", passport.authenticate("local"), async(req, res)=>{
     const user = await User.findById(req.user._id)
     const result = await user.setPassword(req.body.newPassword)
     user.save() // <= remember to save the object, since setPassword is not committing to the db
