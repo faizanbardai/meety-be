@@ -3,7 +3,9 @@ const Schema = mongoose.Schema;
 const passportLocalMongoose = require('passport-local-mongoose');
  
 const userSchema = new Schema({
-    
+    role: {
+        type: String
+    }
 });
  
 userSchema.plugin(passportLocalMongoose);

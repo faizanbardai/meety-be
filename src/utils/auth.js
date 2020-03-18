@@ -1,22 +1,23 @@
 const LocalStrategy = require("passport-local");
 const JwtStrategy = require("passport-jwt").Strategy;
+const FbStrategy = require("passport-facebook-token");
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 
 const auth = require("express-basic-auth")
-const Host = require("../models/auth")
+const User = require("../models/user")
 const atob = require("atob")
 
 const dotenv = require("dotenv")
 dotenv.config()
 
-passport.serializeUser(Host.serializeUser())
-passport.deserializeUser(Host.deserializeUser())
+passport.serializeUser(User.serializeUser())
+passport.deserializeUser(User.deserializeUser())
 
 
 
-passport.use(new LocalStrategy(Host.authenticate()))
+passport.use(new LocalStrategy(User.authenticate()))
 
 const jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken,
@@ -24,12 +25,33 @@ const jwtOptions = {
 }
 
 passport.use(new JwtStrategy(jwtOptions, (jwtPayload, cb) => {
-    Host.findById(jwtPayload._id, (err, host) => {
+    User.findById(jwtPayload._id, (err, host) => {
         if (err) return cb(err, false)
         else if (host) return cb(null, host)
         else return cb(null, false)
     })
 }))
+
+passport.use("fb", new FbStrategy({
+    clientID: process.env.FB_ID,
+    clientSecret: process.env.FB_SECRET
+}, async(accessToken, refreshToken, fbProfile, next) => {
+    try {
+        const user = await User.findOne({facebookID: fbProfile.id})
+        if (user) {
+            return next (null, user)
+        } else {
+            const newUser = await User.create({
+                role: "User",
+                facebookID: fbProfile.id,
+                username: fbProfile.emails[0].value
+            })
+            return next(null, newUser)
+        }
+    } catch (error) {
+        return next(error)
+    }
+}) )
 
 
 

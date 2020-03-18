@@ -1,6 +1,6 @@
 const express = require("express")
-const User = require("../../model/auth")
-const { basic, adminOnly, getToken } = require("../../helpers/auth");
+const User = require("../models/user")
+const { basic, adminOnly, getToken } = require("../utils/auth");
 const passport = require("passport");
 
 const router = express.Router()
@@ -60,7 +60,7 @@ router.get("/userinfo", passport.authenticate("jwt"), async (req, res)=>{
 router.post("/changepassword", passport.authenticate("local"), async(req, res)=>{
     const user = await User.findById(req.user._id)
     const result = await user.setPassword(req.body.newPassword)
-    user.save() // <= remember to save the object, since setPassword is not committing to the db
+    user.save() 
     res.send(result) 
 }
 )
