@@ -1,5 +1,8 @@
 const express = require("express");
 const passport = require("passport");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs-extra");
 const User = require("../models/user");
 const { getToken } = require("../utils/auth");
 
@@ -87,5 +90,40 @@ router.delete("/", passport.authenticate("local"), async (req, res) => {
     res.status(500).send;
   }
 });
+
+const upload = multer({});
+router.post(
+  "/:userId/picture",
+  upload.single("user-image"),
+  async (req, res) => {
+    try {
+      const imgDest = path.join(
+        __dirname,
+        "../../img/user" + req.params.userId + req.file.originalname
+      );
+      const imgDestination =
+        req.protocol +
+        "://" +
+        req.get("host") +
+        "/img/user/" +
+        req.params.userId +
+        req.file.originalname;
+      await fs.writeFileSync(imgDest, req.file.buffer);
+      console.log(imgDestination);
+      const user = await User.findOneAndUpdate(
+        { _id: req.params.userId },
+        { imgHost: imgDestination },
+        {
+          new: true,
+          useFindAndModify: false
+        }
+      );
+      res.send(user);
+    } catch (err) {
+      console.log(err);
+      res.send(err);
+    }
+  }
+);
 
 module.exports = router;
