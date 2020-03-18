@@ -12,6 +12,8 @@ const { basic, adminOnly, setUserInfo } = require("./src/utils/auth")
 
 require("dotenv").config();
 
+
+
 const app = express();
 const port = process.env.PORT || 3000;
 mongooseConnection();

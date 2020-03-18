@@ -44,6 +44,10 @@ router.post("/fblogin", passport.authenticate("fb"), async (req, res) => {
     })
 })
 
+app.get('/fblogin/callback',
+  passport.authenticate('fb', { successRedirect: '/',
+                                      failureRedirect: '/login' }));
+
 
 router.post("/refresh", passport.authenticate("jwt"), async(req, res)=>{
     const token = getToken({ _id: req.user._id })
