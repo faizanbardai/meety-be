@@ -45,7 +45,7 @@ router.post("/fblogin", passport.authenticate("fb"), async (req, res) => {
 })
 
 app.get('/fblogin/callback',
-  passport.authenticate('fb', { successRedirect: '/',
+  passport.authenticate("fb", { successRedirect: '/event',
                                       failureRedirect: '/login' }));
 
 
