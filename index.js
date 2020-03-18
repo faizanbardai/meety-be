@@ -7,6 +7,9 @@ const bodyParser = require("body-parser");
 const userRoute = require("./src/routes/user");
 const eventRoute = require("./src/routes/event");
 
+const hostRouter = require("./src/route/auth")
+const { basic, adminOnly, setUserInfo } = require("./src/helpers/auth")
+
 require("dotenv").config();
 
 const app = express();
