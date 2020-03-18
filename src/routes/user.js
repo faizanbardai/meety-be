@@ -33,6 +33,14 @@ router.post("/login", passport.authenticate("local"), async (req, res) => {
 //   });
 // });
 
+// router.get(
+//   "/fblogin/callback",
+//   passport.authenticate("fb", {
+//     successRedirect: "/event",
+//     failureRedirect: "/login"
+//   })
+// );
+
 router.post("/refresh", passport.authenticate("jwt"), async (req, res) => {
   const token = getToken({ _id: req.user._id });
   res.send({
