@@ -57,21 +57,29 @@ var upload = multer({
     containerSecurity: "blob"
   })
 });
-router.post(
-  "/image",
+router.put(
+  "/:_id/picture",
   passport.authenticate("jwt"),
-  upload.single("image"),
+  upload.single("picture"),
   async (req, res) => {
-    console.log(req.file);
-    console.log(req.body);
-    res.send("ok");
+    try {
+      const updatedEvent = await Event.findByIdAndUpdate(
+        req.params._id,
+        { picture: req.file.url },
+        { new: true }
+      );
+      res.send(updatedEvent);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
   }
 );
 
 router.put("/:id", passport.authenticate("jwt"), async (req, res) => {
   try {
-    const newEvent = await Event.findOneAndUpdate(
-      { _id: req.params.id },
+    const newEvent = await Event.findByIdAndUpdate(
+      req.params.id,
       { $set: { ...req.body } },
       { new: true }
     );
