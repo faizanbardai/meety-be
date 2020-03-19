@@ -1,30 +1,41 @@
 const express = require("express");
 const Event = require("../models/event");
-const User = require("../models/user");
 const passport = require("passport");
-const { getToken } = require("../utils/auth");
 
 const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const event = await Event.find().populate("host");
-    res.status(200).send(event);
+    const events = await Event.find().populate("host");
+    res.status(200).send(events);
   } catch (error) {
     console.log(error);
-    res.send(error);
+    res.status(500).send(error);
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/id/:id", async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     res.send(event);
   } catch (error) {
     console.log(error);
-    res.status(400).send;
+    res.status(500).send(error);
   }
 });
+
+// router.get("/upcoming", async (req, res) => {
+//   try {
+//     const events = await Event.find()
+//       .where("schedule")
+//       .gte("Mar 01 2020")
+//       .lt("Mar 01 2020");
+//     res.send(events);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send(error);
+//   }
+// });
 
 router.post("/", passport.authenticate("jwt"), async (req, res) => {
   try {
@@ -33,11 +44,11 @@ router.post("/", passport.authenticate("jwt"), async (req, res) => {
     res.send(event);
   } catch (error) {
     console.log(error);
-    res.status(400).send(error);
+    res.status(500).send(error);
   }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", passport.authenticate("jwt"), async (req, res) => {
   try {
     const newEvent = await Event.findOneAndUpdate(
       { _id: req.params.id },
@@ -47,17 +58,17 @@ router.put("/:id", async (req, res) => {
     res.send(newEvent);
   } catch (error) {
     console.log(error);
-    res.status(400).send(error);
+    res.status(500).send(error);
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", passport.authenticate("jwt"), async (req, res) => {
   try {
-    const deletedEvent = await Event.findOneAndDelete({ _id: req.params.id });
-    res.send(deletedEvent);
+    const deletedEvent = await Event.findByIdAndDelete(req.params.id);
+    res.send({ message: "Event Deleted", deletedEvent });
   } catch (error) {
     console.log(error);
-    res.status(400).send(error);
+    res.status(500).send(error);
   }
 });
 
