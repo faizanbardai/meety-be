@@ -8,6 +8,8 @@ const bodyParser = require("body-parser");
 const userRoute = require("./src/routes/user");
 const eventRoute = require("./src/routes/event");
 
+const listEndpoints = require("express-list-endpoints");
+
 require("dotenv").config();
 
 const app = express();
@@ -19,6 +21,8 @@ app.use(passport.initialize());
 
 app.use("/user", userRoute);
 app.use("/event", eventRoute);
+
+console.log(listEndpoints(app));
 
 app.get("/", (req, res) => res.send("Hello World!"));
 
