@@ -10,13 +10,11 @@ const eventRoute = require("./src/routes/event");
 
 require("dotenv").config();
 
-
-
 const app = express();
 const port = process.env.PORT || 3000;
 mongooseConnection();
-app.use(bodyParser.json());
 app.use(cors());
+app.use(bodyParser.json());
 app.use(passport.initialize());
 
 app.use("/user", userRoute);
