@@ -9,17 +9,17 @@ const eventSchema = new mongoose.Schema(
       default: "https://via.placeholder.com/300"
     },
     description: String,
-    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "Host" }],
+    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     host: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Host"
+      ref: "User"
     }],
     price:  Number,
-    like: [{ type: mongoose.Schema.Types.ObjectId, ref: "Host" }],
+    like: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     link: String,
     comments: [
       {
-        user: [{ type: mongoose.Schema.Types.ObjectId, ref: "Host" }],
+        user: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
         text: String,
         date: Date
       }
