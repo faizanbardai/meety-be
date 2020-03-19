@@ -1,6 +1,8 @@
 const express = require("express");
 const Event = require("../models/event");
 const passport = require("passport");
+const multer = require("multer");
+const MulterAzureStorage = require("multer-azure-storage");
 
 const router = express.Router();
 
@@ -47,6 +49,24 @@ router.post("/", passport.authenticate("jwt"), async (req, res) => {
     res.status(500).send(error);
   }
 });
+
+var upload = multer({
+  storage: new MulterAzureStorage({
+    azureStorageConnectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
+    containerName: "meety-event",
+    containerSecurity: "blob"
+  })
+});
+router.post(
+  "/image",
+  passport.authenticate("jwt"),
+  upload.single("image"),
+  async (req, res) => {
+    console.log(req.file);
+    console.log(req.body);
+    res.send("ok");
+  }
+);
 
 router.put("/:id", passport.authenticate("jwt"), async (req, res) => {
   try {
