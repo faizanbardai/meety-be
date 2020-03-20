@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const Schema = mongoose.Schema;
 const eventSchema = new mongoose.Schema(
   {
     name: String,
@@ -10,19 +10,19 @@ const eventSchema = new mongoose.Schema(
       default: "https://via.placeholder.com/300"
     },
     description: String,
-    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    participants: [{ type: Schema.Types.ObjectId, ref: "User" }],
     host: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User"
       }
     ],
     price: Number,
-    like: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    like: [{ type: Schema.Types.ObjectId, ref: "User" }],
     link: String,
     comments: [
       {
-        user: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+        user: [{ type: Schema.Types.ObjectId, ref: "User" }],
         text: String,
         date: Date
       }
