@@ -12,8 +12,8 @@ const userSchema = new Schema(
       default: "https://via.placeholder.com/300"
     },
     aboutMe: String,
-    following: { type: Schema.Types.ObjectId },
-    followers: { type: Schema.Types.ObjectId },
+    following: [{ type: Schema.Types.ObjectId }],
+    followers: [{ type: Schema.Types.ObjectId }],
     events: [{ type: Schema.Types.ObjectId, ref: "Event" }]
   },
   { timestamps: true }
