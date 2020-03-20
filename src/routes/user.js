@@ -41,7 +41,7 @@ router.post("/login", passport.authenticate("local"), async (req, res) => {
 //   })
 // );
 
-router.post("/refresh", passport.authenticate("jwt"), async (req, res) => {
+router.get("/refresh", passport.authenticate("jwt"), async (req, res) => {
   const token = getToken({ _id: req.user._id });
   res.send({
     access_token: token,
@@ -53,7 +53,7 @@ router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
   res.send(await User.findById(req.params._id));
 });
 
-router.post(
+router.put(
   "/changepassword",
   passport.authenticate("local"),
   async (req, res) => {
