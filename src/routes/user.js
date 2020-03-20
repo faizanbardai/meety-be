@@ -88,13 +88,13 @@ var upload = multer({
   })
 });
 router.put(
-  "/:_id/picture",
+  "/picture",
   passport.authenticate("jwt"),
   upload.single("picture"),
   async (req, res) => {
     try {
       const updatedUser = await User.findByIdAndUpdate(
-        req.params._id,
+        req.user._id,
         { picture: req.file.url },
         { new: true }
       );
