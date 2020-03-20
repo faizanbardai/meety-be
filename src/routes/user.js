@@ -2,6 +2,8 @@ const express = require("express");
 const passport = require("passport");
 const User = require("../models/user");
 const { getToken } = require("../utils/auth");
+const multer = require("multer");
+const MulterAzureStorage = require("multer-azure-storage");
 
 const router = express.Router();
 
@@ -77,6 +79,32 @@ router.put("/", passport.authenticate("jwt"), async (req, res) => {
     res.status(500).send(error);
   }
 });
+
+var upload = multer({
+  storage: new MulterAzureStorage({
+    azureStorageConnectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
+    containerName: "meety-user",
+    containerSecurity: "blob"
+  })
+});
+router.put(
+  "/:_id/picture",
+  passport.authenticate("jwt"),
+  upload.single("picture"),
+  async (req, res) => {
+    try {
+      const updatedUser = await User.findByIdAndUpdate(
+        req.params._id,
+        { picture: req.file.url },
+        { new: true }
+      );
+      res.send(updatedUser);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  }
+);
 
 router.delete("/", passport.authenticate("local"), async (req, res) => {
   try {

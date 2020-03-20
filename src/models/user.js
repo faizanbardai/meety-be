@@ -7,7 +7,7 @@ const userSchema = new Schema(
     username: String,
     facebook: Object,
     name: String,
-    imgHost: {
+    picture: {
       type: String,
       default: "https://via.placeholder.com/300"
     },
