@@ -1,5 +1,6 @@
 const express = require("express");
 const Event = require("../models/event");
+const User = require("../models/user");
 const passport = require("passport");
 const multer = require("multer");
 const MulterAzureStorage = require("multer-azure-storage");
@@ -42,8 +43,12 @@ router.get("/id/:id", async (req, res) => {
 router.post("/", passport.authenticate("jwt"), async (req, res) => {
   try {
     const event = await Event.create({ ...req.body, host: [req.user._id] });
-    event.save();
-    res.send(event);
+    const eventIDAddedToUserEventArray = await User.findByIdAndUpdate(
+      req.user._id,
+      { $push: { events: event._id } },
+      { new: true }
+    );
+    res.send({ event, eventIDAddedToUserEventArray });
   } catch (error) {
     console.log(error);
     res.status(500).send(error);

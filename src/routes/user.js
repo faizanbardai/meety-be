@@ -52,7 +52,7 @@ router.get("/refresh", passport.authenticate("jwt"), async (req, res) => {
 });
 
 router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
-  res.send(await User.findById(req.params._id));
+  res.send(await User.findById(req.params._id).populate("events"));
 });
 
 router.put(
