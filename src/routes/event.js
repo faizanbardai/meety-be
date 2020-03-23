@@ -4,6 +4,7 @@ const User = require("../models/user");
 const passport = require("passport");
 const multer = require("multer");
 const MulterAzureStorage = require("multer-azure-storage");
+const { check, validationResult } = require("express-validator");
 
 const router = express.Router();
 
@@ -40,20 +41,47 @@ router.get("/id/:id", async (req, res) => {
 //   }
 // });
 
-router.post("/", passport.authenticate("jwt"), async (req, res) => {
-  try {
-    const event = await Event.create({ ...req.body, host: [req.user._id] });
-    const eventIDAddedToUserEventArray = await User.findByIdAndUpdate(
-      req.user._id,
-      { $push: { events: event._id } },
-      { new: true }
-    );
-    res.send({ event, eventIDAddedToUserEventArray });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send(error);
+router.post(
+  "/",
+  [
+    check("name")
+      .isLength({ min: 3, max: 25 })
+      .withMessage("Name should be minimum of 3 charecters"),
+    check("schedule")
+      .exists()
+      .isISO8601("yyyy-mm-dd")
+      .toDate()
+      .withMessage("Select schedule from Today"),
+    // check("duration")
+    //   .exists()
+    //   .withMessage("Duration cannot exceed more than 2 hours"),
+    check("description")
+      .isLength({ min: 25, max: 300 })
+      .withMessage("Descripion cannot be more than 300 words")
+    // check("price")
+    // .exists()
+    // .withMessage("Minimun price is 150€ and Maximum is 500€ ")
+  ],
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+    try {
+      const event = await Event.create({ ...req.body, host: [req.user._id] });
+      const eventIDAddedToUserEventArray = await User.findByIdAndUpdate(
+        req.user._id,
+        { $push: { events: event._id } },
+        { new: true }
+      );
+      res.send({ event, eventIDAddedToUserEventArray });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
   }
-});
+);
 
 var upload = multer({
   storage: new MulterAzureStorage({
