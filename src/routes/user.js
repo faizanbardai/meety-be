@@ -21,7 +21,7 @@ router.post("/createAccount", async (req, res) => {
 router.post("/login", passport.authenticate("local"), async (req, res) => {
   const token = getToken({ _id: req.user._id });
   res.send({
-    acess_token: token,
+    access_token: token,
     user: req.user
   });
 });
