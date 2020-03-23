@@ -50,17 +50,18 @@ router.post(
     check("schedule")
       .exists()
       .isISO8601("yyyy-mm-dd")
+      .isAfter()
       .toDate()
-      .withMessage("Select schedule from Today"),
-    // check("duration")
-    //   .exists()
-    //   .withMessage("Duration cannot exceed more than 2 hours"),
+      .withMessage("Create schedule for Today and ahead"),
+    check("duration")
+      .isFloat({ min: 30, max: 120 })
+      .withMessage("Duration cannot exceed more than 120min"),
     check("description")
       .isLength({ min: 25, max: 300 })
-      .withMessage("Descripion cannot be more than 300 words")
-    // check("price")
-    // .exists()
-    // .withMessage("Minimun price is 150€ and Maximum is 500€ ")
+      .withMessage("Descripion cannot be more than 300 words"),
+    check("price")
+      .isInt({ min: 150, max: 500 })
+      .withMessage("Minimun price is 150€ and Maximum is 500€ ")
   ],
   passport.authenticate("jwt"),
   async (req, res) => {
@@ -75,7 +76,7 @@ router.post(
         { $push: { events: event._id } },
         { new: true }
       );
-      res.send({ event, eventIDAddedToUserEventArray });
+      res.send({ event });
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
