@@ -48,7 +48,7 @@ router.post("/", passport.authenticate("jwt"), async (req, res) => {
       { $push: { events: event._id } },
       { new: true }
     );
-    res.send({ event, eventIDAddedToUserEventArray });
+    res.send(event);
   } catch (error) {
     console.log(error);
     res.status(500).send(error);
