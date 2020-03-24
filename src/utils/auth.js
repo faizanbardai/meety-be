@@ -1,7 +1,7 @@
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
 const JwtStrategy = require("passport-jwt").Strategy;
-const FbStrategy = require("passport-facebook-token");
+const FacebookStrategy = require("passport-facebook").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const jwt = require("jsonwebtoken");
 
@@ -28,6 +28,25 @@ passport.use(
       else return cb(null, false);
     });
   })
+);
+
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: process.env.FACEBOOK_APP_ID,
+      clientSecret: process.env.FACEBOOK_APP_SECRET,
+      callbackURL: "http://localhost:3002/auth/facebook/callback",
+      profileFields: ["id", "displayName", "picture.type(large)", "emails"]
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      User.findOne({ username: profile.emails[0].value }, function(err, user) {
+        if (err) {
+          return done(err);
+        }
+        done(null, user);
+      });
+    }
+  )
 );
 
 // passport.use(

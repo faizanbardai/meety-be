@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 
 const userRoute = require("./src/routes/user");
 const eventRoute = require("./src/routes/event");
+const authRoute = require("./src/routes/auth");
 
 const listEndpoints = require("express-list-endpoints");
 
@@ -21,6 +22,7 @@ app.use(passport.initialize());
 
 app.use("/user", userRoute);
 app.use("/event", eventRoute);
+app.use("/auth", authRoute);
 
 console.log(listEndpoints(app));
 
