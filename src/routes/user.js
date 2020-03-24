@@ -96,7 +96,12 @@ router.put(
   .withMessage("Password must contain at least 8 char")
   .matches(/\d/)
   .withMessage("Password must contain a number"),
-  body('newPassword').custom((value, { req }) => {
+  body('newPassword')
+  .isLength({ min: 8 })
+  .withMessage("Password must contain at least 8 char")
+  .matches(/\d/)
+  .withMessage("Password must contain a number")
+  .custom((value, { req }) => {
     if (value === req.body.password) {
       throw new Error('New password should not same to old password');
     }
