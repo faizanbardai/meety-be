@@ -1,22 +1,46 @@
 const express = require("express");
 const passport = require("passport");
 const User = require("../models/user");
+const { check, validationResult } = require("express-validator");
 const { getToken } = require("../utils/auth");
 const multer = require("multer");
 const MulterAzureStorage = require("multer-azure-storage");
 
 const router = express.Router();
 
-router.post("/createAccount", async (req, res) => {
-  try {
-    const user = await User.register(req.body, req.body.password);
-    const token = getToken({ _id: user._id });
-    res.send({ access_token: token, user });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send(error);
+router.post(
+  "/createAccount",
+  [
+    check("username", "Email is required")
+      .exists()
+      .isEmail()
+      .withMessage("Email is not valid"),
+    check("name", "User name is required")
+      .exists()
+      .isLength({ min: 3, max: 25 })
+      .withMessage("Name should be min3 to max25 char length"),
+    check("password", "Password is required")
+      .exists()
+      .isLength({ min: 8 })
+      .withMessage("Password must contain at least 8 char")
+      .matches(/\d/)
+      .withMessage("Password must contain a number")
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+    try {
+      const user = await User.register(req.body, req.body.password);
+      const token = getToken({ _id: user._id });
+      res.send({ access_token: token, user });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
   }
-});
+);
 
 router.post("/login", passport.authenticate("local"), async (req, res) => {
   const token = getToken({ _id: req.user._id });

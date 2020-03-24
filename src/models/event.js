@@ -17,7 +17,7 @@ const eventSchema = new mongoose.Schema(
         ref: "User"
       }
     ],
-    price: Number,
+    price: String,
     like: [{ type: Schema.Types.ObjectId, ref: "User" }],
     link: String,
     comments: [
