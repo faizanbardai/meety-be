@@ -39,12 +39,19 @@ passport.use(
       profileFields: ["id", "displayName", "picture.type(large)", "emails"]
     },
     async (accessToken, refreshToken, profile, done) => {
-      User.findOne({ username: profile.emails[0].value }, function(err, user) {
-        if (err) {
-          return done(err);
-        }
-        done(null, user);
-      });
+      const userExists = await User.findOne({ facebookID: profile.id });
+      if (userExists) return done(null, userExists);
+      else {
+        const newUser = await User.create({
+          username: profile.emails[0].value,
+          name: profile.displayName,
+          facebookID: profile.id,
+          picture: profile.photos
+            ? profile.photos[0].value
+            : "http://via.placeholder.com/360x360"
+        });
+        return done(null, newUser);
+      }
     }
   )
 );
