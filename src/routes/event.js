@@ -32,24 +32,83 @@ router.get("/id/:id", async (req, res) => {
   } else res.status(400).send("Event ID is not valid");
 });
 
-// router.get("/upcoming", async (req, res) => {
-//   try {
-//     const events = await Event.find()
-//       .where("schedule")
-//       .gte("Mar 01 2020")
-//       .lt("Mar 01 2020");
-//     res.send(events);
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).send(error);
-//   }
-// });
+router.get("/hottest-of-the-week", async (req, res) => {
+  const date = new Date();
+  const dateAfter1Week = date.setDate(date.getDate() + 7);
+  try {
+    const events = await Event.find(
+      {
+        schedule: { $gte: new Date(), $lte: new Date(dateAfter1Week) }
+      },
+      "schedule participantsLength"
+    ).sort({ participantsLength: -1 });
+    res.send(events);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+  }
+});
+router.get("/hottest-of-next-week", async (req, res) => {
+  const date = new Date();
+  const dateAfter1Week = date.setDate(date.getDate() + 7);
+  const dateAfter2Weeks = date.setDate(date.getDate() + 14);
+  try {
+    const events = await Event.find(
+      {
+        schedule: {
+          $gte: new Date(dateAfter1Week),
+          $lte: new Date(dateAfter2Weeks)
+        }
+      },
+      "schedule participantsLength"
+    ).sort({ participantsLength: -1 });
+    res.send(events);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+  }
+});
+router.get("/hottest-of-the-month", async (req, res) => {
+  const date = new Date();
+  const dateAfter1Month = date.setDate(date.getDate() + 30);
+  try {
+    const events = await Event.find(
+      {
+        schedule: {
+          $gte: new Date(),
+          $lte: new Date(dateAfter1Month)
+        }
+      },
+      "schedule participantsLength"
+    ).sort({ participantsLength: -1 });
+    res.send(events);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+  }
+});
+router.get("/all-upcoming", async (req, res) => {
+  try {
+    const events = await Event.find(
+      {
+        schedule: {
+          $gte: new Date()
+        }
+      },
+      "schedule participantsLength"
+    ).sort({ participantsLength: -1 });
+    res.send(events);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
+  }
+});
 
 router.post(
   "/",
   [
     check("name")
-      .isLength({ min: 3, max: 25 })
+      .isLength({ min: 3, max: 100 })
       .withMessage("Name should be minimum of 3 charecters"),
     check("schedule")
       .exists()
@@ -104,6 +163,47 @@ router.put(
       const updatedEvent = await Event.findByIdAndUpdate(
         req.params._id,
         { picture: req.file.url },
+        { new: true }
+      );
+      res.send(updatedEvent);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  }
+);
+
+router.put(
+  "/:_id/join-event",
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    try {
+      const updatedEvent = await Event.findByIdAndUpdate(
+        req.params._id,
+        {
+          $push: { participants: req.user._id },
+          $inc: { participantsLength: 1 }
+        },
+        { new: true }
+      );
+      res.send(updatedEvent);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  }
+);
+router.put(
+  "/:_id/leave-event",
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    try {
+      const updatedEvent = await Event.findByIdAndUpdate(
+        req.params._id,
+        {
+          $pull: { participants: req.user._id },
+          $inc: { participantsLength: -1 }
+        },
         { new: true }
       );
       res.send(updatedEvent);

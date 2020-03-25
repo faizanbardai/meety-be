@@ -11,6 +11,7 @@ const eventSchema = new mongoose.Schema(
     },
     description: String,
     participants: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    participantsLength: Number,
     host: [
       {
         type: Schema.Types.ObjectId,
