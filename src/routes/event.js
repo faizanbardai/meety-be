@@ -38,7 +38,9 @@ router.get("/hottest-of-the-week", async (req, res) => {
   try {
     const events = await Event.find({
       schedule: { $gte: new Date(), $lte: new Date(dateAfter1Week) }
-    }).sort({ participantsLength: -1 });
+    })
+      .sort({ participantsLength: -1 })
+      .limit(3);
     res.send(events);
   } catch (error) {
     console.log(error);
@@ -55,7 +57,9 @@ router.get("/hottest-of-next-week", async (req, res) => {
         $gte: new Date(dateAfter1Week),
         $lte: new Date(dateAfter2Weeks)
       }
-    }).sort({ participantsLength: -1 });
+    })
+      .sort({ participantsLength: -1 })
+      .limit(3);
     res.send(events);
   } catch (error) {
     console.log(error);
@@ -71,7 +75,9 @@ router.get("/hottest-of-the-month", async (req, res) => {
         $gte: new Date(),
         $lte: new Date(dateAfter1Month)
       }
-    }).sort({ participantsLength: -1 });
+    })
+      .sort({ participantsLength: -1 })
+      .limit(3);
     res.send(events);
   } catch (error) {
     console.log(error);
@@ -84,7 +90,9 @@ router.get("/all-upcoming", async (req, res) => {
       schedule: {
         $gte: new Date()
       }
-    }).sort({ participantsLength: -1 });
+    })
+      .sort({ participantsLength: -1 })
+      .limit(3);
     res.send(events);
   } catch (error) {
     console.log(error);
