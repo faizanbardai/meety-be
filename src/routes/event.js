@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const Event = require("../models/event");
 const User = require("../models/user");
 const passport = require("passport");
@@ -19,13 +20,16 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/id/:id", async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id);
-    res.send(event);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send(error);
-  }
+  const isIDValid = mongoose.Types.ObjectId.isValid(req.params.id);
+  if (isIDValid) {
+    try {
+      const event = await Event.findById(req.params.id);
+      event ? res.send(event) : res.status(404).send("No event found!");
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  } else res.status(400).send("Event ID is not valid");
 });
 
 // router.get("/upcoming", async (req, res) => {
@@ -57,11 +61,11 @@ router.post(
       .isFloat({ min: 30, max: 120 })
       .withMessage("Duration cannot exceed more than 120min"),
     check("description")
-      .isLength({ min: 25, max: 300 })
-      .withMessage("Descripion cannot be more than 300 words"),
-    check("price")
-      .isInt({ min: 150, max: 500 })
-      .withMessage("Minimun price is 150€ and Maximum is 500€ ")
+      .isLength({ min: 0, max: 300 })
+      .withMessage("Descripion cannot be more than 300 words")
+    // check("price")
+    //   .isInt({ min: 0, max: 500 })
+    //   .withMessage("Minimun price is 0€ and Maximum is 500€ ")
   ],
   passport.authenticate("jwt"),
   async (req, res) => {
