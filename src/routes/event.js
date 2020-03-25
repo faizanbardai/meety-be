@@ -36,12 +36,9 @@ router.get("/hottest-of-the-week", async (req, res) => {
   const date = new Date();
   const dateAfter1Week = date.setDate(date.getDate() + 7);
   try {
-    const events = await Event.find(
-      {
-        schedule: { $gte: new Date(), $lte: new Date(dateAfter1Week) }
-      },
-      "schedule participantsLength"
-    ).sort({ participantsLength: -1 });
+    const events = await Event.find({
+      schedule: { $gte: new Date(), $lte: new Date(dateAfter1Week) }
+    }).sort({ participantsLength: -1 });
     res.send(events);
   } catch (error) {
     console.log(error);
@@ -53,15 +50,12 @@ router.get("/hottest-of-next-week", async (req, res) => {
   const dateAfter1Week = date.setDate(date.getDate() + 7);
   const dateAfter2Weeks = date.setDate(date.getDate() + 14);
   try {
-    const events = await Event.find(
-      {
-        schedule: {
-          $gte: new Date(dateAfter1Week),
-          $lte: new Date(dateAfter2Weeks)
-        }
-      },
-      "schedule participantsLength"
-    ).sort({ participantsLength: -1 });
+    const events = await Event.find({
+      schedule: {
+        $gte: new Date(dateAfter1Week),
+        $lte: new Date(dateAfter2Weeks)
+      }
+    }).sort({ participantsLength: -1 });
     res.send(events);
   } catch (error) {
     console.log(error);
@@ -72,15 +66,12 @@ router.get("/hottest-of-the-month", async (req, res) => {
   const date = new Date();
   const dateAfter1Month = date.setDate(date.getDate() + 30);
   try {
-    const events = await Event.find(
-      {
-        schedule: {
-          $gte: new Date(),
-          $lte: new Date(dateAfter1Month)
-        }
-      },
-      "schedule participantsLength"
-    ).sort({ participantsLength: -1 });
+    const events = await Event.find({
+      schedule: {
+        $gte: new Date(),
+        $lte: new Date(dateAfter1Month)
+      }
+    }).sort({ participantsLength: -1 });
     res.send(events);
   } catch (error) {
     console.log(error);
@@ -89,14 +80,11 @@ router.get("/hottest-of-the-month", async (req, res) => {
 });
 router.get("/all-upcoming", async (req, res) => {
   try {
-    const events = await Event.find(
-      {
-        schedule: {
-          $gte: new Date()
-        }
-      },
-      "schedule participantsLength"
-    ).sort({ participantsLength: -1 });
+    const events = await Event.find({
+      schedule: {
+        $gte: new Date()
+      }
+    }).sort({ participantsLength: -1 });
     res.send(events);
   } catch (error) {
     console.log(error);
