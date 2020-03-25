@@ -2,7 +2,7 @@ const express = require("express");
 const passport = require("passport");
 const mongoose = require("mongoose");
 const User = require("../models/user");
-const { check, validationResult,body } = require("express-validator");
+const { check, validationResult, body } = require("express-validator");
 const { getToken } = require("../utils/auth");
 const multer = require("multer");
 const MulterAzureStorage = require("multer-azure-storage");
@@ -35,7 +35,9 @@ router.post(
     try {
       const user = await User.register(req.body, req.body.password);
       const token = getToken({ _id: user._id });
-      res.send({ access_token: token, user });
+      //To avoid sending Salt and Hash
+      const userToSend = await User.findById(user._id);
+      res.send({ access_token: token, user: userToSend });
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
@@ -90,23 +92,26 @@ router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
 });
 
 router.put(
-  "/changepassword",[check("password", "Password is required")
-  .exists()
-  .isLength({ min: 8 })
-  .withMessage("Password must contain at least 8 char")
-  .matches(/\d/)
-  .withMessage("Password must contain a number"),
-  body('newPassword')
-  .isLength({ min: 8 })
-  .withMessage("Password must contain at least 8 char")
-  .matches(/\d/)
-  .withMessage("Password must contain a number")
-  .custom((value, { req }) => {
-    if (value === req.body.password) {
-      throw new Error('New password should not same to old password');
-    }
-    return true;
-  })],
+  "/changepassword",
+  [
+    check("password", "Password is required")
+      .exists()
+      .isLength({ min: 8 })
+      .withMessage("Password must contain at least 8 char")
+      .matches(/\d/)
+      .withMessage("Password must contain a number"),
+    body("newPassword")
+      .isLength({ min: 8 })
+      .withMessage("Password must contain at least 8 char")
+      .matches(/\d/)
+      .withMessage("Password must contain a number")
+      .custom((value, { req }) => {
+        if (value === req.body.password) {
+          throw new Error("New password should not same to old password");
+        }
+        return true;
+      })
+  ],
   passport.authenticate("local"),
   async (req, res) => {
     const errors = validationResult(req);
@@ -120,27 +125,33 @@ router.put(
   }
 );
 
-router.put("/",[ check("aboutMe", "profile is required")
-.exists()
-.isLength({ min: 10, max: 150 })
-.withMessage("about me should be min 10 to max 150 char length")], 
-passport.authenticate("jwt"), async (req, res) => {
-  const errors = validationResult(req);
+router.put(
+  "/",
+  [
+    check("aboutMe", "profile is required")
+      .exists()
+      .isLength({ min: 10, max: 150 })
+      .withMessage("about me should be min 10 to max 150 char length")
+  ],
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array() });
     }
-  try {
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      { $set: { ...req.body } },
-      { new: true }
-    );
-    res.send(updatedUser);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send(error);
+    try {
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: { ...req.body } },
+        { new: true }
+      );
+      res.send(updatedUser);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
   }
-});
+);
 
 var upload = multer({
   storage: new MulterAzureStorage({
