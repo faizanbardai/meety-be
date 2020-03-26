@@ -214,12 +214,26 @@ router.put(
 
 router.put("/:id", passport.authenticate("jwt"), async (req, res) => {
   try {
-    const newEvent = await Event.findByIdAndUpdate(
-      req.params.id,
-      { $set: { ...req.body } },
-      { new: true }
-    );
-    res.send(newEvent);
+    // Getting the event
+    const event = await Event.findById(req.params.id);
+
+    // Checking if the logged in user is one of the host of the event
+    const isUserHost = event.host.includes(req.user._id);
+
+    if (isUserHost) {
+      // If the user is the host then allowing to update the event
+      const updatedEvent = await Event.findByIdAndUpdate(
+        req.params.id,
+        { $set: { ...req.body } },
+        { new: true }
+      );
+
+      // Sending the updated event
+      res.send(updatedEvent);
+    } else {
+      // Else letting the client know that the user is not the host of this event
+      res.status(401).send("You are not authorized to update this event.");
+    }
   } catch (error) {
     console.log(error);
     res.status(500).send(error);
