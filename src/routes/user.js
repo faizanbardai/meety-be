@@ -1,7 +1,8 @@
 const express = require("express");
 const passport = require("passport");
 const User = require("../models/user");
-const { check, validationResult,body } = require("express-validator");
+const path = require("path");
+const { check, validationResult, body } = require("express-validator");
 const { getToken } = require("../utils/auth");
 const multer = require("multer");
 const MulterAzureStorage = require("multer-azure-storage");
@@ -75,28 +76,31 @@ router.get("/refresh", passport.authenticate("jwt"), async (req, res) => {
   });
 });
 
-router.get("/id/:_id",passport.authenticate("jwt"), async (req, res) => {
+router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
   res.send(await User.findById(req.params._id).populate("events"));
 });
 
 router.put(
-  "/changepassword",[check("password", "Password is required")
-  .exists()
-  .isLength({ min: 8 })
-  .withMessage("Password must contain at least 8 char")
-  .matches(/\d/)
-  .withMessage("Password must contain a number"),
-  body('newPassword')
-  .isLength({ min: 8 })
-  .withMessage("Password must contain at least 8 char")
-  .matches(/\d/)
-  .withMessage("Password must contain a number")
-  .custom((value, { req }) => {
-    if (value === req.body.password) {
-      throw new Error('New password should not same to old password');
-    }
-    return true;
-  })],
+  "/changepassword",
+  [
+    check("password", "Password is required")
+      .exists()
+      .isLength({ min: 8 })
+      .withMessage("Password must contain at least 8 char")
+      .matches(/\d/)
+      .withMessage("Password must contain a number"),
+    body("newPassword")
+      .isLength({ min: 8 })
+      .withMessage("Password must contain at least 8 char")
+      .matches(/\d/)
+      .withMessage("Password must contain a number")
+      .custom((value, { req }) => {
+        if (value === req.body.password) {
+          throw new Error("New password should not same to old password");
+        }
+        return true;
+      })
+  ],
   passport.authenticate("local"),
   async (req, res) => {
     const errors = validationResult(req);
@@ -110,40 +114,50 @@ router.put(
   }
 );
 
-router.put("/",[ check("aboutMe", "profile is required")
-.exists()
-.isLength({ min: 10, max: 150 })
-.withMessage("about me should be min 10 to max 150 char length")], 
-passport.authenticate("jwt"), async (req, res) => {
-  const errors = validationResult(req);
+router.put(
+  "/",
+  [
+    check("aboutMe", "profile is required")
+      .exists()
+      .isLength({ min: 10, max: 150 })
+      .withMessage("about me should be min 10 to max 150 char length")
+  ],
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(422).json({ errors: errors.array() });
     }
-  try {
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      { $set: { ...req.body } },
-      { new: true }
-    );
-    res.send(updatedUser);
-  } catch (error) {
-    console.log(error);
-    res.status(500).send(error);
+    try {
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: { ...req.body } },
+        { new: true }
+      );
+      res.send(updatedUser);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
   }
-});
+);
 
 var upload = multer({
   storage: new MulterAzureStorage({
     azureStorageConnectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
     containerName: "meety-user",
     containerSecurity: "blob"
-  })
+  }),
+  fileFilter: function (req, file, callback) {
+    var ext = path.extname(file.originalname);
+    if(ext !== '.png' && ext !== '.jpg' && ext !== '.gif' && ext !== '.jpeg') {
+        return callback(new Error('Only images are allowed'))
+    }
+    callback(null, true)
+}
 });
 router.put(
-  "/picture",
-  passport.authenticate("jwt"),
-  upload.single("picture"),
-  async (req, res) => {
+  "/picture", passport.authenticate("jwt"),upload.single("picture"),async (req, res) => {
     try {
       const updatedUser = await User.findByIdAndUpdate(
         req.user._id,
