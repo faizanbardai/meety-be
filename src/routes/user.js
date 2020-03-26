@@ -2,6 +2,8 @@ const express = require("express");
 const passport = require("passport");
 const mongoose = require("mongoose");
 const User = require("../models/user");
+
+const path = require("path");
 const { check, validationResult, body } = require("express-validator");
 const { getToken } = require("../utils/auth");
 const multer = require("multer");
@@ -79,6 +81,7 @@ router.get("/refresh", passport.authenticate("jwt"), async (req, res) => {
 });
 
 router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
+
   const isIDValid = mongoose.Types.ObjectId.isValid(req.params._id);
   if (isIDValid) {
     try {
@@ -89,6 +92,7 @@ router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
       res.status(500).send(error);
     }
   } else res.status(400).send("User ID is not valid");
+
 });
 
 router.put(
@@ -158,13 +162,17 @@ var upload = multer({
     azureStorageConnectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
     containerName: "meety-user",
     containerSecurity: "blob"
-  })
+  }),
+  fileFilter: function (req, file, callback) {
+    var ext = path.extname(file.originalname);
+    if(ext !== '.png' && ext !== '.jpg' && ext !== '.gif' && ext !== '.jpeg') {
+        return callback(new Error('Only images are allowed'))
+    }
+    callback(null, true)
+}
 });
 router.put(
-  "/picture",
-  passport.authenticate("jwt"),
-  upload.single("picture"),
-  async (req, res) => {
+  "/picture", passport.authenticate("jwt"),upload.single("picture"),async (req, res) => {
     try {
       const updatedUser = await User.findByIdAndUpdate(
         req.user._id,
