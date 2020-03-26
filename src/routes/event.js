@@ -135,12 +135,18 @@ router.post(
       return res.status(422).json({ errors: errors.array() });
     }
     try {
-      const event = await Event.create({ ...req.body, host: [req.user._id] });
-      const eventIDAddedToUserEventArray = await User.findByIdAndUpdate(
+      // Getting Event
+      let event = await Event.create({ ...req.body, host: [req.user._id] });
+
+      // Adding Event ID to the host (user) Event Array
+      await User.findByIdAndUpdate(
         req.user._id,
         { $push: { events: event._id } },
         { new: true }
       );
+
+      // Populating Hosts
+      event = await Event.findById(event._id).populate("host");
       res.send(event);
     } catch (error) {
       console.log(error);
