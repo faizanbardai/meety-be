@@ -1,6 +1,8 @@
 const express = require("express");
 const passport = require("passport");
+const mongoose = require("mongoose");
 const User = require("../models/user");
+
 const path = require("path");
 const { check, validationResult, body } = require("express-validator");
 const { getToken } = require("../utils/auth");
@@ -35,7 +37,9 @@ router.post(
     try {
       const user = await User.register(req.body, req.body.password);
       const token = getToken({ _id: user._id });
-      res.send({ access_token: token, user });
+      //To avoid sending Salt and Hash
+      const userToSend = await User.findById(user._id);
+      res.send({ access_token: token, user: userToSend });
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
@@ -77,7 +81,18 @@ router.get("/refresh", passport.authenticate("jwt"), async (req, res) => {
 });
 
 router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
-  res.send(await User.findById(req.params._id).populate("events"));
+
+  const isIDValid = mongoose.Types.ObjectId.isValid(req.params._id);
+  if (isIDValid) {
+    try {
+      const user = await User.findById(req.params._id).populate("events");
+      user ? res.send(user) : res.status(404).send("No user found!");
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  } else res.status(400).send("User ID is not valid");
+
 });
 
 router.put(
