@@ -3,6 +3,7 @@ const passport = require("passport");
 const path = require("path");
 const mongoose = require("mongoose");
 const User = require("../models/user");
+
 const { check, validationResult, body } = require("express-validator");
 const { getToken } = require("../utils/auth");
 const multer = require("multer");
@@ -80,6 +81,7 @@ router.get("/refresh", passport.authenticate("jwt"), async (req, res) => {
 });
 
 router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
+
   const isIDValid = mongoose.Types.ObjectId.isValid(req.params._id);
   if (isIDValid) {
     try {
@@ -90,6 +92,7 @@ router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
       res.status(500).send(error);
     }
   } else res.status(400).send("User ID is not valid");
+
 });
 
 router.put(
