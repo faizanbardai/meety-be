@@ -23,7 +23,9 @@ router.get("/id/:id", async (req, res) => {
   const isIDValid = mongoose.Types.ObjectId.isValid(req.params.id);
   if (isIDValid) {
     try {
-      const event = await Event.findById(req.params.id);
+      const event = await Event.findById(req.params.id).populate(
+        "participants host"
+      );
       event ? res.send(event) : res.status(404).send("No event found!");
     } catch (error) {
       console.log(error);
