@@ -6,7 +6,9 @@ const userSchema = new Schema(
   {
     username: String,
     facebookID: String,
+    access_token:String,
     name: String,
+    active:Boolean,
     picture: {
       type: String,
       default: "https://via.placeholder.com/300"

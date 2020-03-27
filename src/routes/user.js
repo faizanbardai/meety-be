@@ -37,15 +37,32 @@ router.post(
     try {
       const user = await User.register(req.body, req.body.password);
       const token = getToken({ _id: user._id });
-      //To avoid sending Salt and Hash
       const userToSend = await User.findById(user._id);
-      res.send({ access_token: token, user: userToSend });
+      res.send({ access_token: token, user: userToSend,active:false });
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
     }
   }
 );
+
+router.post("/verify/",async(req,res)=>{
+  try{
+    const {access_token}=req.body
+    const user=await User.findOne({"access_token":access_token})
+    if(!user){
+      res.status(404).send("No user found!")
+    }
+
+    user.active=true
+    await user.save()
+    res.send(user)
+  }
+  catch(error){
+    console.log(error);
+    res.status(500).send(error);
+  }
+})
 
 router.post("/login", passport.authenticate("local"), async (req, res) => {
   const token = getToken({ _id: req.user._id });
@@ -167,6 +184,7 @@ var upload = multer({
     var ext = path.extname(file.originalname);
     if(ext !== '.png' && ext !== '.jpg' && ext !== '.gif' && ext !== '.jpeg') {
         return callback(new Error('Only images are allowed'))
+        // return callback(new Error('Only images are allowed'))
     }
     callback(null, true)
 }
