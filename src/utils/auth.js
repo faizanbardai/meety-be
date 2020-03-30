@@ -56,33 +56,6 @@ passport.use(
   )
 );
 
-// passport.use(
-//   "fb",
-//   new FbStrategy(
-//     {
-//       clientID: process.env.FB_ID,
-//       clientSecret: process.env.FB_SECRET
-//     },
-//     async (accessToken, refreshToken, fbProfile, next) => {
-//       try {
-//         const user = await User.findOne({ facebookID: fbProfile.id });
-//         if (user) {
-//           return next(null, user);
-//         } else {
-//           const newUser = await User.create({
-//             role: "User",
-//             facebookID: fbProfile.id,
-//             username: fbProfile.emails[0].value
-//           });
-//           return next(null, newUser);
-//         }
-//       } catch (error) {
-//         return next(error);
-//       }
-//     }
-//   )
-// );
-
 module.exports = {
   getToken: user =>
     jwt.sign(user, jwtOptions.secretOrKey, { expiresIn: 360000 })
