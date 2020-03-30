@@ -35,7 +35,14 @@ router.post(
       return res.status(422).json({ errors: errors.array() });
     }
     try {
-      const user = await User.register(req.body, req.body.password);
+      const user = await User.register(
+        {
+          ...req.body,
+          active: false,
+          verification_code: getToken({ username: req.body.username })
+        },
+        req.body.password
+      );
       const token = getToken({ _id: user._id });
       //To avoid sending Salt and Hash
       const userToSend = await User.findById(user._id);
@@ -47,6 +54,27 @@ router.post(
   }
 );
 
+router.get("/verify", async (req, res) => {
+  // Finding the user by email
+  const user = await User.findOne({ username: req.query.username });
+
+  // If the user exists
+  if (user) {
+    // we verify the verification code
+    if (user.verification_code === req.query.verification_code) {
+      // if the code matches then we set the status of the user to true
+      await User.findByIdAndUpdate(user._id, { active: true });
+
+      // we let the client know that the operation was successful
+      res.send("User activated!");
+    } else {
+      res.status(401).send("Invalid verification code");
+    }
+  } else {
+    res.status(404).send("This email is not associated with any account.");
+  }
+});
+
 router.post("/login", passport.authenticate("local"), async (req, res) => {
   const token = getToken({ _id: req.user._id });
   res.send({
@@ -54,23 +82,6 @@ router.post("/login", passport.authenticate("local"), async (req, res) => {
     user: req.user
   });
 });
-
-// To be added
-// router.post("/fblogin", passport.authenticate("fb"), async (req, res) => {
-//   const token = getToken({ _id: req.user._id });
-//   res.send({
-//     acess_token: token,
-//     user: req.user
-//   });
-// });
-
-// router.get(
-//   "/fblogin/callback",
-//   passport.authenticate("fb", {
-//     successRedirect: "/event",
-//     failureRedirect: "/login"
-//   })
-// );
 
 router.get("/refresh", passport.authenticate("jwt"), async (req, res) => {
   const token = getToken({ _id: req.user._id });
@@ -81,7 +92,6 @@ router.get("/refresh", passport.authenticate("jwt"), async (req, res) => {
 });
 
 router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
-
   const isIDValid = mongoose.Types.ObjectId.isValid(req.params._id);
   if (isIDValid) {
     try {
@@ -92,7 +102,6 @@ router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
       res.status(500).send(error);
     }
   } else res.status(400).send("User ID is not valid");
-
 });
 
 router.put(
@@ -163,16 +172,19 @@ var upload = multer({
     containerName: "meety-user",
     containerSecurity: "blob"
   }),
-  fileFilter: function (req, file, callback) {
+  fileFilter: function(req, file, callback) {
     var ext = path.extname(file.originalname);
-    if(ext !== '.png' && ext !== '.jpg' && ext !== '.gif' && ext !== '.jpeg') {
-        return callback(new Error('Only images are allowed'))
+    if (ext !== ".png" && ext !== ".jpg" && ext !== ".gif" && ext !== ".jpeg") {
+      return callback(new Error("Only images are allowed"));
     }
-    callback(null, true)
-}
+    callback(null, true);
+  }
 });
 router.put(
-  "/picture", passport.authenticate("jwt"),upload.single("picture"),async (req, res) => {
+  "/picture",
+  passport.authenticate("jwt"),
+  upload.single("picture"),
+  async (req, res) => {
     try {
       const updatedUser = await User.findByIdAndUpdate(
         req.user._id,
