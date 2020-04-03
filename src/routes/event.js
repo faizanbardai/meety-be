@@ -259,5 +259,20 @@ router.delete("/:id", passport.authenticate("jwt"), async (req, res) => {
     res.status(500).send(error);
   }
 });
+router.post(
+  "/addHost/:eventId/:host",
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    try {
+      event = await Event.findById(req.params.eventId);
+      event.host.push(req.params.host);
+      event.save();
+      res.send(event);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  }
+);
 
 module.exports = router;
