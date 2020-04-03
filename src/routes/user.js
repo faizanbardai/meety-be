@@ -81,7 +81,6 @@ router.get("/refresh", passport.authenticate("jwt"), async (req, res) => {
 });
 
 router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
-
   const isIDValid = mongoose.Types.ObjectId.isValid(req.params._id);
   if (isIDValid) {
     try {
@@ -92,7 +91,6 @@ router.get("/id/:_id", passport.authenticate("jwt"), async (req, res) => {
       res.status(500).send(error);
     }
   } else res.status(400).send("User ID is not valid");
-
 });
 
 router.put(
@@ -163,16 +161,19 @@ var upload = multer({
     containerName: "meety-user",
     containerSecurity: "blob"
   }),
-  fileFilter: function (req, file, callback) {
+  fileFilter: function(req, file, callback) {
     var ext = path.extname(file.originalname);
-    if(ext !== '.png' && ext !== '.jpg' && ext !== '.gif' && ext !== '.jpeg') {
-        return callback(new Error('Only images are allowed'))
+    if (ext !== ".png" && ext !== ".jpg" && ext !== ".gif" && ext !== ".jpeg") {
+      return callback(new Error("Only images are allowed"));
     }
-    callback(null, true)
-}
+    callback(null, true);
+  }
 });
 router.put(
-  "/picture", passport.authenticate("jwt"),upload.single("picture"),async (req, res) => {
+  "/picture",
+  passport.authenticate("jwt"),
+  upload.single("picture"),
+  async (req, res) => {
     try {
       const updatedUser = await User.findByIdAndUpdate(
         req.user._id,
@@ -196,5 +197,21 @@ router.delete("/", passport.authenticate("local"), async (req, res) => {
     res.status(500).send;
   }
 });
+
+router.get(
+  "/search/:search",
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    try {
+      const user = await User.find({
+        name: { $regex: ".*" + req.params.search + ".*", $options: "i" }
+      }).populate("events"); //any user that contains the search string(i = both lowercase and uppercase)
+      user ? res.send(user) : res.status(404).send("No user found!");
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  }
+);
 
 module.exports = router;
