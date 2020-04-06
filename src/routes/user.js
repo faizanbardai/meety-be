@@ -197,6 +197,48 @@ router.delete("/", passport.authenticate("local"), async (req, res) => {
     res.status(500).send;
   }
 });
+//Here i go
+router.put(
+  "/:_id/follow",
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    try {
+      const addedFollowers = await User.findByIdAndUpdate(
+        req.params._id,
+        {
+          $push: { followers: req.user._id },
+          $inc: { followersLength: 1 }
+        },
+        { new: true }
+      );
+      res.send(addedFollowers);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  }
+);
+
+router.put(
+  "/:_id/unfollow",
+  passport.authenticate("jwt"),
+  async (req, res) => {
+    try {
+      const updatedFollowers = await User.findByIdAndUpdate(
+        req.params._id,
+        {
+          $pull: { followers: req.user._id },
+          $inc: { followersLength: -1 }
+        },
+        { new: true }
+      );
+      res.send(updatedFollowers);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send(error);
+    }
+  }
+);
 
 router.get(
   "/search/:search",
