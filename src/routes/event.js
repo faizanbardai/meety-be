@@ -24,7 +24,7 @@ router.get("/id/:id", async (req, res) => {
   if (isIDValid) {
     try {
       const event = await Event.findById(req.params.id).populate(
-        "participants host"
+        "participants hosts"
       );
       event ? res.send(event) : res.status(404).send("No event found!");
     } catch (error) {
@@ -43,7 +43,8 @@ router.get("/hottest-of-the-week", async (req, res) => {
     })
       .sort({ participantsLength: -1 })
       .limit(3)
-      .populate("host").populate("participants");
+      .populate("hosts")
+      .populate("participants");
     res.send(events);
   } catch (error) {
     console.log(error);
@@ -63,7 +64,8 @@ router.get("/hottest-of-next-week", async (req, res) => {
     })
       .sort({ participantsLength: -1 })
       .limit(3)
-      .populate("host").populate("participants");
+      .populate("hosts")
+      .populate("participants");
     res.send(events);
   } catch (error) {
     console.log(error);
@@ -82,7 +84,8 @@ router.get("/hottest-of-the-month", async (req, res) => {
     })
       .sort({ participantsLength: -1 })
       .limit(3)
-      .populate("host").populate("participants");
+      .populate("hosts")
+      .populate("participants");
     res.send(events);
   } catch (error) {
     console.log(error);
@@ -98,7 +101,8 @@ router.get("/all-upcoming", async (req, res) => {
     })
       .sort({ participantsLength: -1 })
       .limit(3)
-      .populate("host").populate("participants");
+      .populate("hosts")
+      .populate("participants");
     res.send(events);
   } catch (error) {
     console.log(error);
@@ -135,15 +139,24 @@ router.post(
       return res.status(422).json({ errors: errors.array() });
     }
     try {
-      // Getting Event
-      let event = await Event.create({ ...req.body, host: [req.user._id] });
+      // Creating Event
+      let event = await Event.create({ ...req.body });
 
       // Adding Event ID to the host (user) Event Array
-      await User.findByIdAndUpdate(
-        req.user._id,
-        { $push: { events: event._id } },
-        { new: true }
-      );
+
+      //Running a loop to update multiple users
+      event.hosts.forEach(async host => {
+        await User.findByIdAndUpdate(host._id, {
+          $push: { events: event._id }
+        });
+      });
+
+      // This code was written when there was only one host.
+      // await User.findByIdAndUpdate(
+      //   req.user._id,
+      //   { $push: { events: event._id } },
+      //   { new: true }
+      // );
 
       // Populating Hosts
       event = await Event.findById(event._id).populate("host");
@@ -193,7 +206,7 @@ router.put(
           $inc: { participantsLength: 1 }
         },
         { new: true }
-      );
+      ).populate("hosts participants");
       res.send(updatedEvent);
     } catch (error) {
       console.log(error);
@@ -213,7 +226,7 @@ router.put(
           $inc: { participantsLength: -1 }
         },
         { new: true }
-      );
+      ).populate("hosts participants");
       res.send(updatedEvent);
     } catch (error) {
       console.log(error);
@@ -228,7 +241,7 @@ router.put("/:id", passport.authenticate("jwt"), async (req, res) => {
     const event = await Event.findById(req.params.id);
 
     // Checking if the logged in user is one of the host of the event
-    const isUserHost = event.host.includes(req.user._id);
+    const isUserHost = event.hosts.includes(req.user._id);
 
     if (isUserHost) {
       // If the user is the host then allowing to update the event

@@ -27,7 +27,7 @@ router.post(
       .isLength({ min: 8 })
       .withMessage("Password must contain at least 8 char")
       .matches(/\d/)
-      .withMessage("Password must contain a number")
+      .withMessage("Password must contain a number"),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -51,7 +51,7 @@ router.post("/login", passport.authenticate("local"), async (req, res) => {
   const token = getToken({ _id: req.user._id });
   res.send({
     access_token: token,
-    user: req.user
+    user: req.user,
   });
 });
 
@@ -76,7 +76,7 @@ router.get("/refresh", passport.authenticate("jwt"), async (req, res) => {
   const token = getToken({ _id: req.user._id });
   res.send({
     access_token: token,
-    user: req.user
+    user: req.user,
   });
 });
 
@@ -112,7 +112,7 @@ router.put(
           throw new Error("New password should not same to old password");
         }
         return true;
-      })
+      }),
   ],
   passport.authenticate("local"),
   async (req, res) => {
@@ -133,7 +133,7 @@ router.put(
     check("aboutMe", "profile is required")
       .exists()
       .isLength({ min: 10, max: 150 })
-      .withMessage("about me should be min 10 to max 150 char length")
+      .withMessage("about me should be min 10 to max 150 char length"),
   ],
   passport.authenticate("jwt"),
   async (req, res) => {
@@ -159,15 +159,15 @@ var upload = multer({
   storage: new MulterAzureStorage({
     azureStorageConnectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
     containerName: "meety-user",
-    containerSecurity: "blob"
+    containerSecurity: "blob",
   }),
-  fileFilter: function(req, file, callback) {
+  fileFilter: function (req, file, callback) {
     var ext = path.extname(file.originalname);
     if (ext !== ".png" && ext !== ".jpg" && ext !== ".gif" && ext !== ".jpeg") {
       return callback(new Error("Only images are allowed"));
     }
     callback(null, true);
-  }
+  },
 });
 router.put(
   "/picture",
@@ -197,48 +197,53 @@ router.delete("/", passport.authenticate("local"), async (req, res) => {
     res.status(500).send;
   }
 });
-//Here i go
-router.put(
-  "/:_id/follow",
-  passport.authenticate("jwt"),
-  async (req, res) => {
-    try {
-      const addedFollowers = await User.findByIdAndUpdate(
-        req.params._id,
-        {
-          $push: { followers: req.user._id },
-          $inc: { followersLength: 1 }
-        },
-        { new: true }
-      );
-      res.send(addedFollowers);
-    } catch (error) {
-      console.log(error);
-      res.status(500).send(error);
-    }
+router.put("/:_id/follow", passport.authenticate("jwt"), async (req, res) => {
+  try {
+    const addedFollowers = await User.findByIdAndUpdate(
+      req.params._id,
+      {
+        $push: { followers: req.user._id },
+        $inc: { followersLength: 1 },
+      },
+      { new: true }
+    );
+    const addedFollowing = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $push: { following: req.params._id },
+      },
+      { new: true }
+    );
+    res.send(addedFollowing);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
   }
-);
+});
 
-router.put(
-  "/:_id/unfollow",
-  passport.authenticate("jwt"),
-  async (req, res) => {
-    try {
-      const updatedFollowers = await User.findByIdAndUpdate(
-        req.params._id,
-        {
-          $pull: { followers: req.user._id },
-          $inc: { followersLength: -1 }
-        },
-        { new: true }
-      );
-      res.send(updatedFollowers);
-    } catch (error) {
-      console.log(error);
-      res.status(500).send(error);
-    }
+router.put("/:_id/unfollow", passport.authenticate("jwt"), async (req, res) => {
+  try {
+    const updatedFollowers = await User.findByIdAndUpdate(
+      req.params._id,
+      {
+        $pull: { followers: req.user._id },
+        $inc: { followersLength: -1 },
+      },
+      { new: true }
+    );
+    const updatedFollowing = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $pull: { following: req.params._id },
+      },
+      { new: true }
+    );
+    res.send(updatedFollowing);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send(error);
   }
-);
+});
 
 router.get(
   "/search/:search",
@@ -246,7 +251,7 @@ router.get(
   async (req, res) => {
     try {
       const user = await User.find({
-        name: { $regex: ".*" + req.params.search + ".*", $options: "i" }
+        name: { $regex: ".*" + req.params.search + ".*", $options: "i" },
       }).populate("events"); //any user that contains the search string(i = both lowercase and uppercase)
       user ? res.send(user) : res.status(404).send("No user found!");
     } catch (error) {
