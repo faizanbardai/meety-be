@@ -252,7 +252,7 @@ router.get(
     try {
       const user = await User.find({
         name: { $regex: ".*" + req.params.search + ".*", $options: "i" },
-      }).populate("events"); //any user that contains the search string(i = both lowercase and uppercase)
+      }); //any user that contains the search string(i = both lowercase and uppercase)
       user ? res.send(user) : res.status(404).send("No user found!");
     } catch (error) {
       console.log(error);
