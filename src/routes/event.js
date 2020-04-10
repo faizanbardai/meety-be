@@ -39,7 +39,7 @@ router.get("/hottest-of-the-week", async (req, res) => {
   const dateAfter1Week = date.setDate(date.getDate() + 7);
   try {
     const events = await Event.find({
-      schedule: { $gte: new Date(), $lte: new Date(dateAfter1Week) }
+      schedule: { $gte: new Date(), $lte: new Date(dateAfter1Week) },
     })
       .sort({ participantsLength: -1 })
       .limit(3)
@@ -59,8 +59,8 @@ router.get("/hottest-of-next-week", async (req, res) => {
     const events = await Event.find({
       schedule: {
         $gte: new Date(dateAfter1Week),
-        $lte: new Date(dateAfter2Weeks)
-      }
+        $lte: new Date(dateAfter2Weeks),
+      },
     })
       .sort({ participantsLength: -1 })
       .limit(3)
@@ -79,8 +79,8 @@ router.get("/hottest-of-the-month", async (req, res) => {
     const events = await Event.find({
       schedule: {
         $gte: new Date(),
-        $lte: new Date(dateAfter1Month)
-      }
+        $lte: new Date(dateAfter1Month),
+      },
     })
       .sort({ participantsLength: -1 })
       .limit(3)
@@ -96,8 +96,8 @@ router.get("/all-upcoming", async (req, res) => {
   try {
     const events = await Event.find({
       schedule: {
-        $gte: new Date()
-      }
+        $gte: new Date(),
+      },
     })
       .sort({ participantsLength: -1 })
       .limit(3)
@@ -127,7 +127,7 @@ router.post(
       .withMessage("Duration cannot exceed more than 120min"),
     check("description")
       .isLength({ min: 0, max: 300 })
-      .withMessage("Descripion cannot be more than 300 words")
+      .withMessage("Descripion cannot be more than 300 words"),
     // check("price")
     //   .isInt({ min: 0, max: 500 })
     //   .withMessage("Minimun price is 0€ and Maximum is 500€ ")
@@ -145,9 +145,9 @@ router.post(
       // Adding Event ID to the host (user) Event Array
 
       //Running a loop to update multiple users
-      event.hosts.forEach(async host => {
+      event.hosts.forEach(async (host) => {
         await User.findByIdAndUpdate(host._id, {
-          $push: { events: event._id }
+          $push: { events: event._id },
         });
       });
 
@@ -172,8 +172,8 @@ var upload = multer({
   storage: new MulterAzureStorage({
     azureStorageConnectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
     containerName: "meety-event",
-    containerSecurity: "blob"
-  })
+    containerSecurity: "blob",
+  }),
 });
 router.put(
   "/:_id/picture",
@@ -203,7 +203,7 @@ router.put(
         req.params._id,
         {
           $push: { participants: req.user._id },
-          $inc: { participantsLength: 1 }
+          $inc: { participantsLength: 1 },
         },
         { new: true }
       ).populate("hosts participants");
@@ -223,7 +223,7 @@ router.put(
         req.params._id,
         {
           $pull: { participants: req.user._id },
-          $inc: { participantsLength: -1 }
+          $inc: { participantsLength: -1 },
         },
         { new: true }
       ).populate("hosts participants");
@@ -265,8 +265,14 @@ router.put("/:id", passport.authenticate("jwt"), async (req, res) => {
 
 router.delete("/:id", passport.authenticate("jwt"), async (req, res) => {
   try {
-    const deletedEvent = await Event.findByIdAndDelete(req.params.id);
-    res.send({ message: "Event Deleted", deletedEvent });
+    const event = await Event.findById(req.params.id);
+    const isUserHost = event.hosts.includes(req.user._id);
+    if (isUserHost) {
+      const deletedEvent = await Event.findByIdAndDelete(req.params.id);
+      res.send({ message: "Event Deleted", deletedEvent });
+    } else {
+      res.status(401).send("You are not authorized to delete this event.");
+    }
   } catch (error) {
     console.log(error);
     res.status(500).send(error);
