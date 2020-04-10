@@ -42,7 +42,6 @@ router.get("/hottest-of-the-week", async (req, res) => {
       schedule: { $gte: new Date(), $lte: new Date(dateAfter1Week) },
     })
       .sort({ participantsLength: -1 })
-      .limit(3)
       .populate("hosts")
       .populate("participants");
     res.send(events);
@@ -63,7 +62,6 @@ router.get("/hottest-of-next-week", async (req, res) => {
       },
     })
       .sort({ participantsLength: -1 })
-      .limit(3)
       .populate("hosts")
       .populate("participants");
     res.send(events);
@@ -83,7 +81,6 @@ router.get("/hottest-of-the-month", async (req, res) => {
       },
     })
       .sort({ participantsLength: -1 })
-      .limit(3)
       .populate("hosts")
       .populate("participants");
     res.send(events);
@@ -100,7 +97,6 @@ router.get("/all-upcoming", async (req, res) => {
       },
     })
       .sort({ participantsLength: -1 })
-      .limit(3)
       .populate("hosts")
       .populate("participants");
     res.send(events);
